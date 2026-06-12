@@ -15,7 +15,6 @@ st.set_page_config(
 sns.set_theme(style="whitegrid")
 plt.rcParams.update({'font.size': 10, 'axes.labelsize': 11, 'axes.titlesize': 13})
 
-# =====================================================================
 # CLASE DE ARQUITECTURA DE DATOS (POO)
 # =====================================================================
 class DataProcessor:
@@ -72,7 +71,7 @@ class DataProcessor:
         plt.tight_layout()
         return fig
 
-# =====================================================================
+
 # NAVEGACIÓN
 # =====================================================================
 
@@ -82,14 +81,14 @@ st.sidebar.markdown("---")
 
 navigation_menu = st.sidebar.radio(
     "Seleccione un Módulo:",
-    ["🏠 Home / Presentación", "📂 Carga de Dataset", "📊 Análisis Exploratorio (EDA)"]
+    ["🏠 Home", "📂 Carga de Dataset", "📊 Análisis Exploratorio (EDA)"]
 )
 
 if 'raw_data' not in st.session_state:
     st.session_state.raw_data = None
 
 # MÓDULO 1: HOME
-if navigation_menu == "🏠 Home / Presentación":
+if navigation_menu == "🏠 Home":
     st.title("🚀 Analítica de Retención de Clientes - Telecomunicaciones")
     st.markdown("---")
     col1, col2 = st.columns([2, 1])
@@ -99,8 +98,8 @@ if navigation_menu == "🏠 Home / Presentación":
         st.markdown("### 🛠️ Tecnologías")
         st.write("Python, Pandas, NumPy, Matplotlib, Seaborn, Streamlit.")
     with col2:
-        st.markdown("### 👤 Ficha del Autor")
-        st.success("**Autor:** Alumno Experto\n\n**Especialización:** Python potenciado con IA\n\n**Año:** 2026")
+        st.markdown("### 👤 Datos del Autor")
+        st.success("**Autor:** Julio Cesar Paico Jaime\n\n**Especialización:** Python potenciado con IA\n\n**Año:** 2026")
 
 # MÓDULO 2: CARGA
 elif navigation_menu == "📂 Carga de Dataset":
