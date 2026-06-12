@@ -77,7 +77,8 @@ class DataProcessor:
 # =====================================================================
 st.sidebar.title("🧭 Panel de Control")
 
-st.sidebar.markdown("---")
+#st.sidebar.markdown("---")
+st.image("images/innovacion.png", width=120)
 navigation_menu = st.sidebar.radio(
     "Seleccione un Módulo:",
     ["🏠 Home / Presentación", "📂 Carga de Dataset", "📊 Análisis Exploratorio (EDA)"]
