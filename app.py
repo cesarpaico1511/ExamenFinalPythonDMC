@@ -1,10 +1,13 @@
+%%writefile app.py
 import streamlit as st
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-# Configuración de la página de estilo
+# =====================================================================
+# CONFIGURACIÓN ESTRUCTURAL DE LA PÁGINA (Instrucción Primaria)
+# =====================================================================
 st.set_page_config(
     page_title="Telco Churn Analytics Dashboard",
     page_icon="📊",
@@ -12,176 +15,298 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# Configuración uniforme de estilos gráficos para la organización
 sns.set_theme(style="whitegrid")
 plt.rcParams.update({'font.size': 10, 'axes.labelsize': 11, 'axes.titlesize': 13})
 
-# CLASE DE ARQUITECTURA DE DATOS (POO)
 # =====================================================================
-class DataProcessor:
+# ENCAPSULAMIENTO EN PROGRAMACIÓN ORIENTADA A OBJETOS (POO)
+# =====================================================================
+class DataAnalyzer:
+    """
+    Clase de nivel producción encargada de gestionar los procesos de limpieza,
+    transformación tipológica, segmentación analítica y renderizado de gráficos.
+    """
     def __init__(self, dataframe: pd.DataFrame):
+        # Evitar mutabilidad no deseada del dataframe base mediante copia profunda
         self.df = dataframe.copy()
-        self._clean_and_transform()
+        self._preprocesar_datos_criticos()
         
-    def _clean_and_transform(self):
+    def _preprocesar_datos_criticos(self):
+        """Manejo de inconsistencias de tipos de datos en variables financieras."""
         if 'TotalCharges' in self.df.columns:
+            # Reemplazo seguro de espacios en blanco por estructuras NaN
             self.df['TotalCharges'] = self.df['TotalCharges'].replace(' ', np.nan)
             self.df['TotalCharges'] = pd.to_numeric(self.df['TotalCharges'], errors='coerce')
+            
         if 'Churn' in self.df.columns:
             self.df['Churn'] = self.df['Churn'].astype(str).str.strip()
 
-    def classify_variables(self):
-        columns_to_check = [col for col in self.df.columns if col.lower() != 'customerid']
-        num_vars = self.df[columns_to_check].select_dtypes(include=[np.number]).columns.tolist()
-        cat_vars = self.df[columns_to_check].select_dtypes(include=['object', 'category']).columns.tolist()
+    def clasificar_variables_personalizada(self):
+        """Función algorítmica para aislar tipos cualitativos y cuantitativos."""
+        # Exclusión estricta del ID único del cliente para preservar consistencia estadística
+        columnas_analiticas = [col for col in self.df.columns if col.lower() != 'customerid']
+        
+        num_vars = self.df[columnas_analiticas].select_dtypes(include=[np.number]).columns.tolist()
+        cat_vars = self.df[columnas_analiticas].select_dtypes(include=['object', 'category']).columns.tolist()
         return num_vars, cat_vars
 
-    def get_descriptive_stats(self, numeric_columns):
-        return self.df[numeric_columns].describe().T
+    def obtener_estadistica_descriptiva(self, columnas_numericas):
+        """Genera matriz consolidada de medidas de tendencia central y dispersión."""
+        return self.df[columnas_numericas].describe().T
 
-    def plot_histogram(self, column: str, kde: bool = True):
-        fig, ax = plt.subplots(figsize=(6, 3.5))
-        sns.histplot(data=self.df, x=column, kde=kde, color="#1f77b4", ax=ax)
-        ax.set_title(f"Distribución de: {column}")
+    def graficar_histograma_univariado(self, columna: str, activar_kde: bool = True):
+        """Renderiza distribución de frecuencias continuas."""
+        fig, ax = plt.subplots(figsize=(6, 3.8))
+        sns.histplot(data=self.df, x=columna, kde=activar_kde, color="#1f77b4", ax=ax)
+        ax.set_title(f"Distribución Univariada de: {columna}")
+        ax.set_xlabel(columna)
+        ax.set_ylabel("Frecuencia Absoluta")
         plt.tight_layout()
         return fig
 
-    def plot_categorical_bar(self, column: str):
-        fig, ax = plt.subplots(figsize=(6, 3.5))
-        order = self.df[column].value_counts().index
-        sns.countplot(data=self.df, x=column, order=order, palette="Blues_r", ax=ax)
-        ax.set_title(f"Frecuencias Absolutas: {column}")
+    def graficar_barras_categoricas(self, columna: str):
+        """Renderiza frecuencias para atributos discretos ordenados de forma descendente."""
+        fig, ax = plt.subplots(figsize=(6, 3.8))
+        orden_frecuencia = self.df[columna].value_counts().index
+        sns.countplot(data=self.df, x=columna, order=orden_frecuencia, palette="Blues_r", ax=ax)
+        ax.set_title(f"Conteo de Categorías: {columna}")
+        ax.set_xlabel(columna)
+        ax.set_ylabel("Cantidad de Clientes")
         plt.xticks(rotation=15)
         plt.tight_layout()
         return fig
 
-    def plot_bivariate_box(self, num_col: str, cat_col: str = "Churn"):
-        fig, ax = plt.subplots(figsize=(6, 3.5))
-        sns.boxplot(data=self.df, x=cat_col, y=num_col, palette="Set2", ax=ax)
-        ax.set_title(f"Impacto de {num_col} vs {cat_col}")
+    def graficar_bivariado_caja(self, variable_num: str, variable_cat: str = "Churn"):
+        """Muestra diagramas de caja y bigotes para evaluar contrastes de grupos."""
+        fig, ax = plt.subplots(figsize=(6, 3.8))
+        sns.boxplot(data=self.df, x=variable_cat, y=variable_num, palette="Set2", ax=ax)
+        ax.set_title(f"Análisis Boxplot: {variable_num} vs {variable_cat}")
+        ax.set_xlabel(f"Estatus de Fuga ({variable_cat})")
+        ax.set_ylabel(variable_num)
         plt.tight_layout()
         return fig
 
-    def plot_bivariate_stacked_bar(self, cat_col: str, target_col: str = "Churn"):
-        fig, ax = plt.subplots(figsize=(6, 3.5))
-        crosstab_data = pd.crosstab(self.df[cat_col], self.df[target_col], normalize='index') * 100
-        crosstab_data.plot(kind='bar', stacked=True, color=['#2ca02c', '#d62728'], ax=ax)
-        ax.set_title(f"Proporción de Churn según {cat_col}")
-        ax.set_ylabel("Porcentaje (%)")
+    def graficar_bivariado_barras_apiladas(self, variable_cat: str, objetivo: str = "Churn"):
+        """Genera tablas de contingencia relacionales normalizadas al 100%."""
+        fig, ax = plt.subplots(figsize=(6, 3.8))
+        tabla_contingencia = pd.crosstab(self.df[variable_cat], self.df[objetivo], normalize='index') * 100
+        
+        tabla_contingencia.plot(kind='bar', stacked=True, color=['#2ca02c', '#d62728'], ax=ax)
+        ax.set_title(f"Proporción de Churn Relativa por {variable_cat}")
+        ax.set_xlabel(variable_cat)
+        ax.set_ylabel("Porcentaje Proporcional (%)")
+        ax.legend(title="Churn", loc="lower left")
         plt.xticks(rotation=15)
         plt.tight_layout()
         return fig
 
-
-# NAVEGACIÓN
 # =====================================================================
-
-st.image("images/innovacion.png", width=300)
-st.sidebar.title("🧭 Panel de Control")
+# SISTEMA GENERAL DE NAVEGACIÓN (CONTROL DE FLUJO)
+# =====================================================================
+st.sidebar.title("🧭 Navegación Estratégica")
 st.sidebar.markdown("---")
-
-navigation_menu = st.sidebar.radio(
-    "Seleccione un Módulo:",
-    ["🏠 Home", "📂 Carga de Dataset", "📊 Análisis Exploratorio (EDA)"]
+modulo_seleccionado = st.sidebar.radio(
+    "Seleccione Módulo de Trabajo:",
+    ["🏠 Home / Presentación", "📂 Carga de Dataset", "📊 Análisis Exploratorio (EDA)"]
 )
 
-if 'raw_data' not in st.session_state:
-    st.session_state.raw_data = None
+# Inicialización persistente del estado de sesión para el intercambio de información entre pestañas
+if 'dataset_usuarios' not in st.session_state:
+    st.session_state.dataset_usuarios = None
 
-# MÓDULO 1: HOME
-if navigation_menu == "🏠 Home":
-    st.title("🚀 Analítica de Retención de Clientes - Telecomunicaciones")
+# -----------------------------------------------------------------
+# MÓDULO 1: HOME (PRESENTACIÓN INSTITUCIONAL)
+# -----------------------------------------------------------------
+if modulo_seleccionado == "🏠 Home / Presentación":
+    st.title("🚀 Plataforma de Analítica Corporativa de Retención de Clientes")
+    st.subheader("Análisis de Diagnóstico sobre Factores de Deserción Contractual")
     st.markdown("---")
-    col1, col2 = st.columns([2, 1])
-    with col1:
-        st.markdown("### 📋 Contexto de Negocio")
-        st.write("Durante el COVID-19, la fuga aumentó del 2.0% al 2.5%. Adquirir un cliente es de 6 a 7 veces más costoso que retenerlo. Esta herramienta ayuda a diseñar estrategias de retención sin fines predictivos.")
-        st.markdown("### 🛠️ Tecnologías")
-        st.write("Python, Pandas, NumPy, Matplotlib, Seaborn, Streamlit.")
-    with col2:
-        st.markdown("### 👤 Datos del Autor")
-        st.success("**Autor:** Julio Cesar Paico Jaime\n\n**Especialización:** Python potenciado con IA\n\n**Año:** 2026")
-
-# MÓDULO 2: CARGA
-elif navigation_menu == "📂 Carga de Dataset":
-    st.title("📂 Carga del Dataset")
-    st.markdown("---")
-    uploaded_file = st.file_uploader("Suba el archivo TelcoCustomerChurn.csv", type=["csv"])
     
-    if uploaded_file is not None:
-        st.session_state.raw_data = pd.read_csv(uploaded_file)
-        st.success("✔️ Archivo cargado con éxito.")
-        st.metric(label="Filas", value=f"{st.session_state.raw_data.shape[0]:,}")
-        st.metric(label="Columnas", value=str(st.session_state.raw_data.shape[1]))
-        st.dataframe(st.session_state.raw_data.head(5), use_container_width=True)
-    else:
-        st.warning("⚠️ Control de flujo: Suba el archivo CSV para desbloquear el análisis.")
+    col_h1, col_h2 = st.columns([2, 1])
+    with col_h1:
+        st.markdown("### 📋 Justificación Comercial y Problemática")
+        st.write(
+            "Durante la ventana temporal correspondiente a la coyuntura global del COVID-19, la organización "
+            "experimentó una elevación crítica en su métrica de fuga de clientes de **+0.5 puntos porcentuales**, "
+            "escalando de un promedio controlado del **2.0% a un 2.5%**."
+        )
+        st.info(
+            "💡 **Métrica Financiera Clave:** Los análisis de costo-beneficio evidencian que la tasa de adquisición de un "
+            "nuevo usuario representa un costo financiero de entre **6 y 7 veces mayor** que los mecanismos operativos de "
+            "retención de un cliente existente. Esta herramienta fue diseñada como un producto analítico real para "
+            "sustentar la toma de decisiones estratégicas sin fines predictivos."
+        )
+        st.markdown("### 🛠️ Ecosistema Tecnológico de Soporte")
+        st.markdown("- **Core:** Python  \n- **Procesamiento Estructural:** Pandas & NumPy  \n- **Librerías de Visualización:** Matplotlib & Seaborn  \n- **Despliegue de Interfaz:** Streamlit")
+        
+    with col_h2:
+        st.markdown("### 👤 Ficha del Investigador")
+        st.success("**Nombre del Alumno:** Alumno Experto  \n\n**Especialización:** Python potenciado con IA  \n\n**Año Académico:** 2026")
+        st.markdown("### 📦 Atributos Generales")
+        st.write("El conjunto de datos histórico evalúa características demográficas, tipos de servicios técnicos contratados, variables de facturación mensual y la condición final de deserción o permanencia.")
 
-# MÓDULO 3: EDA
-elif navigation_menu == "📊 Análisis Exploratorio (EDA)":
-    st.title("📊 Núcleo EDA")
+# -----------------------------------------------------------------
+# MÓDULO 2: CARGA ASISTIDA DEL DATASET
+# -----------------------------------------------------------------
+elif modulo_seleccionado == "📂 Carga de Dataset":
+    st.title("📂 Repositorio de Carga e Inspección Sanitaria")
     st.markdown("---")
-    if st.session_state.raw_data is None:
-        st.warning("⚠️ Control de flujo: Cargue los datos en el Módulo anterior.")
+    
+    archivo_cargado = st.file_uploader("Por favor, seleccione el archivo fuente TelcoCustomerChurn.csv:", type=["csv"])
+    
+    if archivo_cargado is not None:
+        try:
+            df_fuente = pd.read_csv(archivo_cargado)
+            st.session_state.dataset_usuarios = df_fuente
+            st.success("✔️ Archivo cargado correctamente e indexado en el buffer del sistema.")
+            
+            c_m1, c_m2 = st.columns(2)
+            with c_m1:
+                st.metric(label="Volumen Total de Clientes Analizados (Filas)", value=f"{df_fuente.shape[0]:,}")
+            with c_m2:
+                st.metric(label="Dimensiones del Atributo de Datos (Columnas)", value=str(df_fuente.shape[1]))
+                
+            st.markdown("### 🗂️ Vista Previa de Registros Estructurados (Primeras 5 Filas)")
+            st.dataframe(df_fuente.head(5), use_container_width=True)
+        except Exception as error:
+            st.error(f"Fallo crítico al procesar el archivo estructurado: {error}")
+    else:
+        st.warning("⚠️ Control de Flujo Activado: El sistema se encuentra en espera de la carga del archivo CSV. Suba el dataset para desbloquear las funciones analíticas.")
+
+# -----------------------------------------------------------------
+# MÓDULO 3: NÚCLEO CORE - ANÁLISIS EXPLORATORIO DE DATOS (EDA)
+# -----------------------------------------------------------------
+elif modulo_seleccionado == "📊 Análisis Exploratorio (EDA)":
+    st.title("📊 Núcleo Integrado de Análisis Exploratorio de Datos (EDA)")
+    st.markdown("---")
+    
+    # REGLA CRÍTICA DE CONTROL DE FLUJO: Validación de persistencia de datos
+    if st.session_state.dataset_usuarios is None:
+        st.warning("⚠️ Acceso Denegado: No se ha detectado información estructurada en memoria. Diríjase al menú '📂 Carga de Dataset' para habilitar las funciones analíticas.")
         st.stop()
         
-    processor = DataProcessor(st.session_state.raw_data)
-    num_vars, cat_vars = processor.classify_variables()
+    # Instanciación de la clase bajo el paradigma POO
+    analizador = DataAnalyzer(st.session_state.dataset_usuarios)
+    columnas_num, columnas_cat = analizador.clasificar_variables_personalizada()
     
-    t1, t2, t3, t4, t5 = st.tabs(["🔬 Estructura", "📈 Univariado", "👥 Bivariado", "⚙️ Dinámico", "🎯 Insights"])
+    # Arquitectura limpia de visualización organizada en pestañas temáticas
+    tab_est, tab_uni, tab_biv, tab_din, tab_ins = st.tabs([
+        "🔬 Diagnóstico Estructural", "📈 Análisis Univariado", "👥 Cruce Bivariado", "⚙️ Simulación Dinámica", "🎯 Hallazgos Clave"
+    ])
     
-    with t1:
-        st.markdown("### Ítems 1 y 2: Información General y Clasificación")
-        st.write(f"**Numéricas:** {num_vars}")
-        st.write(f"**Categóricas:** {cat_vars}")
-        st.markdown("### Ítem 3: Estadística Descriptiva")
-        st.dataframe(processor.get_descriptive_stats(num_vars))
-        st.markdown("### Ítem 4: Valores Faltantes")
-        st.dataframe(processor.df.isnull().sum().to_frame(name="Nulos"))
+    # --- PESTAÑA 1: DIAGNÓSTICO ESTRUCTURAL (Ítems 1 al 4) ---
+    with tab_est:
+        st.markdown("### Ítem 1: Mapeo de Tipos de Datos y Muestra")
+        resumen_estructura = pd.DataFrame({
+            "Estructura Atributo": analizador.df.columns,
+            "Tipo de Almacenamiento": [str(t) for t in analizador.df.dtypes],
+            "Registros Habilitados Non-Null": analizador.df.notnull().sum().values
+        })
+        st.dataframe(resumen_estructura, use_container_width=True)
         
-    with t2:
-        st.markdown("### Ítem 5: Distribución Numérica")
-        sel_num = st.selectbox("Columna numérica:", num_vars)
-        fig = processor.plot_histogram(sel_num)
-        st.pyplot(fig)
-        plt.close(fig)
+        st.markdown("### Ítem 2: Clasificación Algorítmica de Variables")
+        st.write(f"**Atributos Cuantitativos (`{len(columnas_num)}`):** {', '.join(columnas_num)}")
+        st.write(f"**Atributos Cualitativos (`{len(columnas_cat)}`):** {', '.join(columnas_cat[:5])}... y {len(columnas_cat)-5} adicionales.")
         
-        st.markdown("### Ítem 6: Distribución Categórica")
-        sel_cat = st.selectbox("Columna categórica:", cat_vars)
-        fig2 = processor.plot_categorical_bar(sel_cat)
-        st.pyplot(fig2)
-        plt.close(fig2)
+        st.markdown("### Ítem 3: Consolidado Estadístico Descriptivo")
+        st.dataframe(analizador.obtener_estadistica_descriptiva(columnas_num), use_container_width=True)
+        st.write("**Interpretación:** La variable `tenure` muestra una media de 32.3 meses de permanencia con alta variabilidad. La mediana se sitúa en 29 meses, denotando un sesgo provocado por los extremos transaccionales.")
         
-    with t3:
-        st.markdown("### Ítem 7: Numérico vs Churn")
-        b_num = st.selectbox("Métrica:", ["tenure", "MonthlyCharges"])
-        fig3 = processor.plot_bivariate_box(b_num)
-        st.pyplot(fig3)
-        plt.close(fig3)
+        st.markdown("### Ítem 4: Análisis de Valores Faltantes y Nulos")
+        conteos_nulos = analizador.df.isnull().sum()
+        porcentajes_nulos = (analizador.df.isnull().sum() / len(analizador.df)) * 100
+        tabla_sanidad = pd.DataFrame({"Cantidad de Vacíos": conteos_nulos, "Porcentaje Relativo (%)": porcentajes_nulos})
+        st.dataframe(tabla_sanidad, use_container_width=True)
+        st.write("**Discusión Técnica:** Los registros vacíos aislados en `TotalCharges` corresponden a cuentas con `tenure = 0`. Esto indica que son usuarios con contratos recién firmados que no han pasado por el primer ciclo de facturación mensual.")
+
+    # --- PESTAÑA 2: ANALISIS UNIVARIADO (Ítems 5 y 6) ---
+    with tab_uni:
+        c_u1, c_u2 = st.columns(2)
+        with c_u1:
+            st.markdown("### Ítem 5: Distribución de Características Numéricas")
+            num_seleccionada = st.selectbox("Seleccione la columna numérica:", columnas_num, key="uni_n")
+            activar_densidad = st.checkbox("Superponer Curva KDE", value=True)
+            
+            fig_h = analizador.graficar_histograma_univariado(num_seleccionada, activar_densidad)
+            st.pyplot(fig_h)
+            plt.close(fig_h)
+        with c_u2:
+            st.markdown("### Ítem 6: Frecuencias de Características Categóricas")
+            cat_seleccionada = st.selectbox("Seleccione la columna categórica:", columnas_cat, key="uni_c")
+            
+            fig_b = analizador.graficar_barras_categoricas(cat_seleccionada)
+            st.pyplot(fig_b)
+            plt.close(fig_b)
+
+    # --- PESTAÑA 3: ANALISIS BIVARIADO (Ítems 7 y 8) ---
+    with tab_biv:
+        c_b1, c_b2 = st.columns(2)
+        with c_b1:
+            st.markdown("### Ítem 7: Análisis Bivariado (Numérico vs Churn)")
+            biv_num = st.selectbox("Seleccione Métrica Financiera:", ["tenure", "MonthlyCharges", "TotalCharges"], key="biv_n")
+            
+            fig_box = analizador.graficar_bivariado_caja(biv_num)
+            st.pyplot(fig_box)
+            plt.close(fig_box)
+            st.write("Se observa que los usuarios en estatus de fuga activa registran una permanencia notablemente inferior y cargos mensuales superiores en comparación con el segmento retenido.")
+        with c_b2:
+            st.markdown("### Ítem 8: Análisis Bivariado (Categórico vs Churn)")
+            biv_cat = st.selectbox("Seleccione Atributo Comercial:", ["Contract", "InternetService", "PaymentMethod"], key="biv_c")
+            
+            fig_apilada = analizador.graficar_bivariado_barras_apiladas(biv_cat)
+            st.pyplot(fig_apilada)
+            plt.close(fig_apilada)
+            st.write("Los gráficos apilados confirman un patrón crítico de deserción en los contratos Month-to-month y en servicios provistos por tecnología de Fibra Óptica.")
+
+    # --- PESTAÑA 4: EXPLORACIÓN DINÁMICA DE PARÁMETROS (Ítem 9) ---
+    with tab_din:
+        st.markdown("### Ítem 9: Análisis Dinámico Basado en Parámetros Seleccionados")
+        st.write("Modifique los controles paramétricos interconectados para aislar el comportamiento de subsegmentos del mercado en tiempo real.")
         
-        st.markdown("### Ítem 8: Categórico vs Churn")
-        b_cat = st.selectbox("Categoría:", ["Contract", "InternetService"])
-        fig4 = processor.plot_bivariate_stacked_bar(b_cat)
-        st.pyplot(fig4)
-        plt.close(fig4)
+        c_f1, c_f2 = st.columns(2)
+        with c_f1:
+            limite_tenure = st.slider("Ventana de Antigüedad Evaluada (Meses):", 0, int(analizador.df["tenure"].max()), (0, 36))
+        with c_f2:
+            opciones_contrato = st.multiselect("Esquemas Contractuales Habilitados:", options=analizador.df["Contract"].unique().tolist(), default=analizador.df["Contract"].unique().tolist())
+            
+        # Ejecución matemática del filtro interactivo
+        df_segmentado = analizador.df[
+            (analizador.df["tenure"] >= limite_tenure[0]) & 
+            (analizador.df["tenure"] <= limite_tenure[1]) & 
+            (analizador.df["Contract"].isin(opciones_contrato))
+        ]
         
-    with t4:
-        st.markdown("### Ítem 9: Filtros Interactivos")
-        max_t = int(processor.df["tenure"].max())
-        rango = st.slider("Meses de Permanencia:", 0, max_t, (0, max_t))
-        filtro_df = processor.df[(processor.df["tenure"] >= rango[0]) & (processor.df["tenure"] <= rango[1])]
-        st.write(f"Registros en rango: {filtro_df.shape[0]}")
-        st.dataframe(filtro_df.head(5))
+        st.metric(label="Muestra Coincidente", value=f"{df_segmentado.shape[0]} registros")
+        if not df_segmentado.empty and "Churn" in df_segmentado.columns:
+            tasa_fuga_segmento = (df_segmentado["Churn"].value_counts(normalize=True).get("Yes", 0.0)) * 100
+            st.metric(label="Tasa Focalizada de Churn en el Subsegmento", value=f"{tasa_fuga_segmento:.2f}%")
+            st.dataframe(df_segmentado.head(5), use_container_width=True)
+
+    # --- PESTAÑA 5: INSIGHTS ESTRATÉGICOS (Ítem 10) ---
+    with tab_ins:
+        st.markdown("### Ítem 10: Matriz Resumen de Hallazgos Clave")
         
-    with t5:
-        st.markdown("### Ítem 10: Hallazgos Clave")
-        fig5, ax = plt.subplots(figsize=(5, 3))
-        sns.scatterplot(data=processor.df, x="tenure", y="MonthlyCharges", hue="Churn", alpha=0.5, ax=ax)
-        st.pyplot(fig5)
-        plt.close(fig5)
-        
-        st.markdown("### 📌 Conclusiones Estratégicas")
-        st.write("1. Los contratos 'Mes a Mes' concentran el mayor porcentaje de abandono.")
-        st.write("2. Los clientes que cancelan muestran cargos mensuales superiores a los $70 USD.")
-        st.write("3. La mayor densidad de fuga ocurre en los primeros 6 meses de antigüedad.")
-        st.write("4. Clientes con Fibra Óptica exhiben tasas de churn proporcionalmente más altas.")
-        st.write("5. Métodos de pago manuales (Electronic Check) presentan mayor tasa de abandono.")
+        col_res1, col_res2 = st.columns([1, 1])
+        with col_res1:
+            fig_scat, ax_scat = plt.subplots(figsize=(6, 4.2))
+            sns.scatterplot(data=analizador.df, x="tenure", y="MonthlyCharges", hue="Churn", palette={"Yes": "#d62728", "No": "#2ca02c"}, alpha=0.4, ax=ax_scat)
+            ax_scat.set_title("Estructura Espacial del Abandono de Clientes")
+            st.pyplot(fig_scat)
+            plt.close(fig_scat)
+        with col_res2:
+            st.markdown("#### 🎯 Indicios Identificados en la Población")
+            st.write(
+                "El análisis de dispersión cruzado revela una alta densidad de puntos de deserción (marcas rojas) "
+                "localizados en la zona de **baja permanencia (0 a 12 meses)** vinculados a **altas tarifas de facturación "
+                "mensual (superiores a $70 USD)**.\n\n"
+                "Esto demuestra de forma empírica el foco de insatisfacción comercial inmediata post-COVID-19."
+            )
+            
+        st.markdown("---")
+        st.markdown("### 📌 Conclusiones Finales Orientadas a la Toma de Decisiones")
+        st.markdown(
+            "1. **Reestructuración Contractual de Corto Plazo:** Los contratos 'Mes a Mes' concentran de forma masiva el abandono. Se debe implementar una campaña comercial que financie ofertas de descuento para incentivar la conversión obligatoria a esquemas anuales estables.\n"
+            "2. **Establecimiento de Alertas de Elasticidad de Precio:** Se evidencia un umbral de deserción acelerado al superar los $70 USD mensuales. Es necesario implantar alertas automáticas en el CRM para ofrecer empaquetamientos competitivos antes de que el cliente finalice su relación.\n"
+            "3. **Mecanismo de Retención Temprana:** Al ser los primeros 6 meses el ciclo de vida con mayor densidad de Churn, se aconseja programar campañas de soporte especializado y encuestas de satisfacción inmediatas durante este periodo crítico.\n"
+            "4. **Auditoría Técnica en Canales de Fibra Óptica:** A pesar de ser un producto tecnológico premium, el servicio de Internet por Fibra Óptica registra tasas de Churn anormalmente elevadas frente a DSL,
