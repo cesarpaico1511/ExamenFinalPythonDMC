@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-# Configuración de la página de Streamlit
+# Configuración de la página de estilo
 st.set_page_config(
     page_title="Telco Churn Analytics Dashboard",
     page_icon="📊",
@@ -76,6 +76,7 @@ class DataProcessor:
 # NAVEGACIÓN
 # =====================================================================
 st.sidebar.title("🧭 Panel de Control")
+st.image("images/Python_logo.png", width=200) 
 st.sidebar.markdown("---")
 navigation_menu = st.sidebar.radio(
     "Seleccione un Módulo:",
