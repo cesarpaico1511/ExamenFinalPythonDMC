@@ -76,7 +76,7 @@ class DataProcessor:
 # NAVEGACIÓN
 # =====================================================================
 st.sidebar.title("🧭 Panel de Control")
-st.image("images/Python_logo.png", width=200) 
+
 st.sidebar.markdown("---")
 navigation_menu = st.sidebar.radio(
     "Seleccione un Módulo:",
