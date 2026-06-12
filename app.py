@@ -76,7 +76,7 @@ class DataProcessor:
 # NAVEGACIÓN
 # =====================================================================
 
-st.image("images/innovacion.png", width=120)
+st.image("images/innovacion.png", width=300)
 st.sidebar.title("🧭 Panel de Control")
 st.sidebar.markdown("---")
 
