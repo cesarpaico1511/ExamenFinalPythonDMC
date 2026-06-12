@@ -78,8 +78,7 @@ class DataProcessor:
 
 st.image("images/innovacion.png", width=120)
 st.sidebar.title("🧭 Panel de Control")
-
-#st.sidebar.markdown("---")
+st.sidebar.markdown("---")
 
 navigation_menu = st.sidebar.radio(
     "Seleccione un Módulo:",
