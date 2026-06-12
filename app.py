@@ -95,7 +95,7 @@ if navigation_menu == "🏠 Home":
     col1, col2 = st.columns([2, 1])
     with col1:
         st.markdown("### 📋 Contexto de Negocio")
-        st.write("Durante el COVID-19, la fuga aumentó del 2.0% al 2.5%. Adquirir un cliente es de 6 a 7 veces más costoso que retenerlo. Esta herramienta ayuda a diseñar estrategias de retención sin fines predictivos.")
+        st.write("Durante la coyuntura del COVID-19, la empresa incrementó su ratio de fuga de clientes en +0.5 puntos porcentuales, pasando de un promedio histórico del 2.0% a un 2.5%. Dado que el costo de adquirir un nuevo cliente es entre 6 y 7 veces mayor que retener uno existente, es de vital importancia contar con herramientas profesionales de Análisis Exploratorio de Datos (EDA). Esta aplicación web interactiva desarrollada sobre Streamlit permite identificar patrones críticos de comportamiento e indicios de abandono para sustentar la toma de decisiones estratégicas sin recurrir a modelos predictivos de caja negra.")
         st.markdown("### 🛠️ Tecnologías")
         st.write("Python, Pandas, NumPy, Matplotlib, Seaborn, Streamlit.")
     with col2:
